@@ -49,6 +49,7 @@ jobs:
 
     - name: Deploy to EKS
       run: |
-        kubectl patch deployment temperaturas-frontend -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"daw-temperaturas-frontend\",\"imagePullPolicy\":\"Always\"}]}}}}"
-        kubectl annotate deployment temperaturas-frontend kubernetes.io/change-cause="Deploy via Github Action $(date +'%Y-%m-%d %H:%M:%S')" --overwrite
-        kubectl rollout restart deployment/temperaturas-frontend
+        kubectl delete deployment temperaturas-frontend --ignore-not-found=true
+        kubectl create deployment temperaturas-frontend --image=${{ env.DOCKER_IMAGE }}
+        kubectl patch deployment temperaturas-frontend --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/ports", "value": [{"containerPort": 3008}]}]'
+        kubectl patch deployment temperaturas-frontend -p '{"spec":{"template":{"spec":{"containers":[{"name":"daw-temperaturas-frontend","imagePullPolicy":"Always"}]}}}}'
